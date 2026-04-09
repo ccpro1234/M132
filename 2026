@@ -373,14 +373,14 @@ function doLogin(){
 
 <script>
 const SYSTEMS=[
-["DNA x",h=>h.at(-1)],
-["DNA ,",h=>h.at(-1)==="P"?"B":"P"],
-["DNA 2",h=>h.length>=2&&h.at(-1)==h.at(-2)?h.at(-1):(h.at(-1)==="P"?"B":"P")],
+["DNA x",h=>h[h.length-1]],
+["DNA ,",h=>h[h.length-1]==="P"?"B":"P"],
+["DNA 2",h=>h.length>=2 && h[h.length-1]===h[h.length-2] ? h[h.length-1] : (h[h.length-1]==="P"?"B":"P")],
 ["DNA /",h=>h.length%2===0?"P":"B"],
-["DNA 3",h=>h.length>=3&&new Set(h.slice(-3)).size===1?h.at(-1):(h.at(-1)==="P"?"B":"P")],
+["DNA 3",h=>h.length>=3 && new Set(h.slice(-3)).size===1 ? h[h.length-1] : (h[h.length-1]==="P"?"B":"P")],
 ["DNA =",h=>h.filter(x=>x==="P").length<=h.filter(x=>x==="B").length?"P":"B"],
 ["DNA 5",h=>h.slice(-5).filter(x=>x==="P").length>h.slice(-5).filter(x=>x==="B").length?"P":"B"],
-["DNA C",h=>h.length>=4&&new Set(h.slice(-4)).size===1?(h.at(-1)==="P"?"B":"P"):h.at(-1)],
+["DNA C",h=>h.length>=4 && new Set(h.slice(-4)).size===1 ? (h[h.length-1]==="P"?"B":"P") : h[h.length-1]],
 ["DNA T",h=>h.slice(-6).filter(x=>x==="P").length>h.slice(-6).filter(x=>x==="B").length?"P":"B"]
 ];
 
@@ -389,7 +389,7 @@ let history=[],h=[],playCnt=Array(9).fill(0),winCnt=Array(9).fill(0),
 mark=Array.from({length:9},()=>[]),
 big=Array.from({length:ROWS},()=>Array(COLS).fill("")),
 bead=[],bc=0,br=0,last=null;
-colorMajorHistory=[];
+window.colorMajorHistory=[];
 
 const box=document.getElementById("systems");
 SYSTEMS.forEach((s,i)=>{
@@ -404,7 +404,10 @@ box.innerHTML+=`
 function play(v){history.push(v);rebuild();}
 function replay(v){
  if(v==="T"){h.push("T");bead.push("T");return;}
- const preds=SYSTEMS.map(s=>s[1](h));
+ 
+ const preds = h.length
+  ? SYSTEMS.map(s=>s[1](h))
+  : Array(SYSTEMS.length).fill(null);
  h.push(v);
 
  /* ===== UPDATE COLOR MAJOR HISTORY ===== */
@@ -470,7 +473,7 @@ big[br][bc]=v;last=v;
  let countP=0,countB=0;
 
  SYSTEMS.forEach((s,i)=>{
-  const pred = s[1](h);
+  const pred = h.length ? s[1](h) : null;
 
   if(pred==="P") countP++;
   if(pred==="B") countB++;
@@ -534,7 +537,9 @@ P ${percentP}% | B ${percentB}%
 
 /* ===== ผลล่าสุด ===== */
 
-const lastWL = window.colorMajorHistory.at(-1);
+const lastWL = window.colorMajorHistory[
+  window.colorMajorHistory.length-1
+];
 
 const winCount =
   window.colorMajorHistory.filter(x=>x==="W").length;
@@ -617,18 +622,23 @@ draw();   // 👈 เพิ่มบรรทัดนี้
 </script>
 
 <script>
+
 function resizeCanvas(){
  document.querySelectorAll("canvas").forEach(c=>{
-  const ratio=window.devicePixelRatio||1;
-  const w=c.clientWidth;
-  const h=c.clientHeight;
-  c.width=w*ratio;
-  c.height=h*ratio;
-  const ctx=c.getContext("2d");
-  ctx.setTransform(ratio,0,0,ratio,0,0);
+  const ratio = window.devicePixelRatio || 1;
+  const w = c.clientWidth;
+  const h = c.clientHeight;
+
+  c.width = w * ratio;
+  c.height = h * ratio;
+
+  const ctx = c.getContext("2d");
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
  });
- draw();
+
+ draw(); // ✅ วาดหลัง resize
 }
+
 window.addEventListener("resize",resizeCanvas);
 resizeCanvas();
 </script>
